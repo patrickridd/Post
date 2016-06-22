@@ -20,7 +20,7 @@ Students who complete this project independently are able to:
 * use NSURLSession to make asynchronous POST HTTP requests
 * build custom table views that support paging through network requests
 
-## Part One - Model Object, Model Controller, Network Controller (HTTP Get), and Paging Table View
+## Part One - Model Objects, Model Controller, Network Controller (HTTP Get), Refresh Control
 
 * use NSURLSession to make asynchronous GET HTTP requests
 * parse JSON data and generate model objects from youb requests
