@@ -22,16 +22,7 @@ class PostController {
     weak var delegate: PostControllerDelegate?
     
     init() {
-        
-        fetchPosts { (postArray) in
-            guard let posts = postArray else {
-                print("Could not fetch posts upon initialization")
-                return
-            }
-            
-            self.posts = posts
-            
-        }
+        fetchPosts()
     }
     
     var posts: [Post] = [] {
@@ -44,26 +35,41 @@ class PostController {
         }
     }
     
-    func fetchPosts(completion: (postArray: [Post]?) -> Void) {
+    func fetchPosts(reset: Bool = true, completion: ((postArray: [Post]?) -> Void)? = nil ) {
+        
+        
         
         var postsArray: [Post] = []
         
+        
+        let queryEndInterval = reset ? NSDate().timeIntervalSince1970 : posts.last?.queryTimestamp ?? NSDate().timeIntervalSince1970
+        
+        let urlParameters = [
+            "orderBy": "\"timestamp\"",
+            "endAt": "\(queryEndInterval)",
+            "limitToLast": "15",
+            ]
+        
         guard let url = urlAppended else {
             print("URL returned nil")
-            completion(postArray: nil)
+           // completion(postArray: nil)
             return
         }
         
         
-        NetworkController.performRequestForURL(url, httpMethod: .Get) { (data, error) in
+        NetworkController.performRequestForURL(url, httpMethod: .Get, urlParameters: urlParameters) { (data, error) in
             guard let data = data, jsonDictionary = (try? NSJSONSerialization.JSONObjectWithData(data, options: [])) as? [String:AnyObject] else {
-                completion(postArray: nil)
+                if let completion = completion {
+                    completion(postArray: nil)
+                }
                 return
             }
             
             for keyValuePair in jsonDictionary {
                 guard let newDictionary = keyValuePair.1 as? [String : AnyObject]  else {
-                    completion(postArray: nil)
+                    if let completion = completion {
+                        completion(postArray: nil)
+                    }
                     return
                 }
                 let id = keyValuePair.0
@@ -76,8 +82,14 @@ class PostController {
             }
             let sortedPosts = postsArray.sort({$0.timeStamp > $1.timeStamp})
             dispatch_async(dispatch_get_main_queue(), {
-                completion(postArray: sortedPosts)
-                
+                if reset == true {
+                    self.posts = sortedPosts
+                } else {
+                    self.posts.appendContentsOf(sortedPosts)
+                }
+                if let completion = completion {
+                    completion(postArray: sortedPosts)
+                }
             })
             
             
@@ -102,10 +114,7 @@ class PostController {
                 print("Successfully saved data to endpoint. \nResponse: \(responseDataString)")
             }
             
-            
         }
-        fetchPosts { (postArray) in
-            
-        }
+        fetchPosts()
     }
 }

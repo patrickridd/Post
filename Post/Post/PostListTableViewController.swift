@@ -10,7 +10,7 @@ import UIKit
 
 class PostListTableViewController: UITableViewController, PostControllerDelegate {
     
-  
+    
     var postController = PostController()
     
     
@@ -18,8 +18,12 @@ class PostListTableViewController: UITableViewController, PostControllerDelegate
     override func viewDidLoad() {
         super.viewDidLoad()
         postController.delegate = self
+        tableView.rowHeight = UITableViewAutomaticDimension
+        tableView.estimatedRowHeight = 200
 
-
+        
+        
+        
         self.refreshControl?.addTarget(self, action: #selector(PostListTableViewController.handleRefresh(_:)), forControlEvents: UIControlEvents.ValueChanged)
     }
     
@@ -30,8 +34,9 @@ class PostListTableViewController: UITableViewController, PostControllerDelegate
         // Fetch more objects from a web service, for example...
         UIApplication.sharedApplication().networkActivityIndicatorVisible = true
         postController.fetchPosts { (postArray) in
-            self.tableView.estimatedRowHeight = UITableViewAutomaticDimension
+            
             self.tableView.reloadData()
+            print("refreshed tableview")
             self.refreshControl?.endRefreshing()
             UIApplication.sharedApplication().networkActivityIndicatorVisible = false
         }
@@ -68,7 +73,7 @@ class PostListTableViewController: UITableViewController, PostControllerDelegate
         postAlert.addAction(postAction)
         presentViewController(postAlert, animated: true, completion: nil)
     }
-  
+    
     
     func presentErrorAlert() {
         let errorAlert = UIAlertController(title: "Missing Information", message: "You are missing information in either the username and/or message field. Try again.", preferredStyle: .Alert)
@@ -95,7 +100,7 @@ class PostListTableViewController: UITableViewController, PostControllerDelegate
         let post = postController.posts[indexPath.row]
         // Configure the cell...
         
-         cell.textLabel?.numberOfLines = 0
+        cell.textLabel?.numberOfLines = 0
         cell.detailTextLabel?.numberOfLines = 0
         
         
@@ -104,57 +109,35 @@ class PostListTableViewController: UITableViewController, PostControllerDelegate
         return cell
     }
     
-    
-    /*
-     // Override to support conditional editing of the table view.
-     override func tableView(tableView: UITableView, canEditRowAtIndexPath indexPath: NSIndexPath) -> Bool {
-     // Return false if you do not want the specified item to be editable.
-     return true
-     }
-     */
-    
-    /*
-     // Override to support editing the table view.
-     override func tableView(tableView: UITableView, commitEditingStyle editingStyle: UITableViewCellEditingStyle, forRowAtIndexPath indexPath: NSIndexPath) {
-     if editingStyle == .Delete {
-     // Delete the row from the data source
-     tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: .Fade)
-     } else if editingStyle == .Insert {
-     // Create a new instance of the appropriate class, insert it into the array, and add a new row to the table view
-     }
-     }
-     */
-    
-    /*
-     // Override to support rearranging the table view.
-     override func tableView(tableView: UITableView, moveRowAtIndexPath fromIndexPath: NSIndexPath, toIndexPath: NSIndexPath) {
-     
-     }
-     */
-    
-    /*
-     // Override to support conditional rearranging of the table view.
-     override func tableView(tableView: UITableView, canMoveRowAtIndexPath indexPath: NSIndexPath) -> Bool {
-     // Return false if you do not want the item to be re-orderable.
-     return true
-     }
-     */
-    
-    /*
-     // MARK: - Navigation
-     
-     // In a storyboard-based application, you will often want to do a little preparation before navigation
-     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
-     // Get the new view controller using segue.destinationViewController.
-     // Pass the selected object to the new view controller.
-     }
-     */
-    
-    // MARK: - PostControllerDelegate Protocol Methods
-    func postsUpdated(posts: [Post]) {
-        tableView.reloadData()
+    override func tableView(tableView: UITableView, willDisplayCell cell: UITableViewCell, forRowAtIndexPath indexPath: NSIndexPath)
+    {
+        if indexPath.row + 1 >= postController.posts.count {
+            postController.fetchPosts(false, completion: { (postArray) in
+                if postArray != nil {
+                    tableView.reloadData()
+                }
+            })
+            
+            
+        }
     }
-    
-    
+        // MARK: - Navigation
+         
+         // In a storyboard-based application, you will often want to do a little preparation before navigation
+         override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
+         // Get the new view controller using segue.destinationViewController.
+         // Pass the selected object to the new view controller.
+         }
+         
+        
+        // MARK: - PostControllerDelegate Protocol Methods
+        func postsUpdated(posts: [Post]) {
+            tableView.reloadData()
+        }
+        
+        
+        
+        
+        
     
 }

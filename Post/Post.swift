@@ -59,4 +59,7 @@ class Post {
     var jsonData: NSData? {
         return try? NSJSONSerialization.dataWithJSONObject(jsonValue, options: .PrettyPrinted)
     }
+    var queryTimestamp: NSTimeInterval {
+        return self.timeStamp - 1
+    }
 }
